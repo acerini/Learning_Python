@@ -1,40 +1,30 @@
-#!/usr/bin/python
+#!/usr/local/bin/python2
+
+
+#I used so many sites as reference to figure different things out, and during the process I unfortunately forgot to notate them, but no that this is almost all my own code, aside from some of the items listed under TextDocPrintout
+import wxversion
+wxversion.select('3.0')
 import wx
 from wx.html import HtmlEasyPrinting
 
-FONTSIZE = 10
+FONTSIZE = 6
 
 class TextDocPrintout(wx.Printout):
-    """
-        A printout class that is able to print simple text documents.
-        Does not handle page numbers or titles, and it assumes that no
-        lines are longer than what will fit within the page width.  Those
-        features are left as an exercise for the reader. ;-)
-        """
+   
     def __init__(self, text, title, margins):
         wx.Printout.__init__(self, title)
         self.lines = text.split('\n')
         self.margins = margins
-    
-    
-    def HasPage(self, page):
-        return page <= self.numPages
-    
-    def GetPageInfo(self):
-        return (1, self.numPages, 1, self.numPages)
+   
     
     
     def CalculateScale(self, dc):
-        # Scale the DC such that the printout is roughly the same as
-        # the screen scaling.
+        
         ppiPrinterX, ppiPrinterY = self.GetPPIPrinter()
         ppiScreenX, ppiScreenY = self.GetPPIScreen()
         logScale = float(ppiPrinterX)/float(ppiScreenX)
         
-        # Now adjust if the real page size is reduced (such as when
-        # drawing on a scaled wx.MemoryDC in the Print Preview.)  If
-        # page width == DC width then nothing changes, otherwise we
-        # scale down for the DC.
+     
         pw, ph = self.GetPageSizePixels()
         dw, dh = dc.GetSize()
         scale = logScale * float(dw)/float(pw)
@@ -60,6 +50,7 @@ class TextDocPrintout(wx.Printout):
         # use a 1mm buffer around the inside of the box, and a few
         # pixels between each line
         self.pageHeight = self.y2 - self.y1 - 2*self.logUnitsMM
+        #font = wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL, False, 'BODONI ORNAMENTS REGULAR')
         font = wx.Font(FONTSIZE, wx.TELETYPE, wx.NORMAL, wx.NORMAL)
         dc.SetFont(font)
         self.lineHeight = dc.GetCharHeight()
@@ -71,9 +62,9 @@ class TextDocPrintout(wx.Printout):
         dc = self.GetDC()
         self.CalculateScale(dc)
         self.CalculateLayout(dc)
-        self.numPages = len(self.lines) / self.linesPerPage
-        if len(self.lines) % self.linesPerPage != 0:
-            self.numPages += 1
+        #self.numPages = len(self.lines) / self.linesPerPage
+        # if len(self.lines) % self.linesPerPage != 0:
+        #   self.numPages += 1
 
 
     def OnPrintPage(self, page):
@@ -82,7 +73,7 @@ class TextDocPrintout(wx.Printout):
         self.CalculateLayout(dc)
     
         # draw a page outline at the margin points
-        dc.SetPen(wx.Pen("black", 0))
+        dc.SetPen(wx.Pen("white", 0))
         dc.SetBrush(wx.TRANSPARENT_BRUSH)
         r = wx.RectPP((self.x1, self.y1),
                       (self.x2, self.y2))
@@ -194,10 +185,11 @@ class Interpret(wx.Frame):
         panel.SetBackgroundColour(wx.Colour(0,142,117))
 
         self.pdata = wx.PrintData()
-        self.pdata.SetPaperId(wx.PAPER_LETTER)
+        self.pdata.SetPaperSize(wx.Size(60,400))
+        self.pdata.SetPrinterName('Dymo Label Writer 400')
         self.pdata.SetOrientation(wx.PORTRAIT)
-        self.margins = (wx.Point(15,15), wx.Point(15,15))
-        self.numPage = (1)
+        self.margins = (wx.Point(0,0), wx.Point(0,0))
+    
     
     def onGetData(self, evt=None):
         print("get data button pressed")
@@ -212,7 +204,7 @@ class Interpret(wx.Frame):
     def onPrint(self, evt=None):
         data = wx.PrintDialogData(self.pdata)
         printer = wx.Printer(data)
-        text = self.TextCtrl.GetValue()
+        text = '\n\nINTERPRETATION_ERROR__\n\n422 Unprocessable Entity'
         printout = TextDocPrintout(text, "title", self.margins)
         useSetupDialog = True
         if not printer.Print(self, printout, useSetupDialog) \
